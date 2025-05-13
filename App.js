@@ -44,9 +44,11 @@ export default function App() {
 
   const handleAddTask = () => {
     if (task.trim() === '') {
-      Alert.alert('Please enter a task');
+      Alert.alert('Error', 'Please enter a task');
       return;
     }
+
+    const timestamp = new Date().toISOString(); // Timestamp for task creation
 
     if (editIndex !== -1) {
       const updatedTasks = [...tasks];
@@ -59,7 +61,10 @@ export default function App() {
       saveTasks(updatedTasks);
       setEditIndex(-1);
     } else {
-      const newTasks = [...tasks, { text: task, completed: false, priority }];
+      const newTasks = [
+        ...tasks,
+        { text: task, completed: false, priority, createdAt: timestamp, completedAt: null },
+      ];
       setTasks(newTasks);
       saveTasks(newTasks);
     }
@@ -92,6 +97,13 @@ export default function App() {
   const handleToggleComplete = (index) => {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
+
+    if (updatedTasks[index].completed) {
+      updatedTasks[index].completedAt = new Date().toISOString(); // Timestamp when completed
+    } else {
+      updatedTasks[index].completedAt = null; // Clear the completed timestamp if task is undone
+    }
+
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
   };
@@ -108,6 +120,12 @@ export default function App() {
         return '#BDBDBD';
     }
   };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === 'All') return true;
+    if (filter === 'Ongoing') return !task.completed;
+    if (filter === 'Completed') return task.completed;
+  });
 
   const renderTask = ({ item, index }) => (
     <View style={styles.taskContainer}>
@@ -143,6 +161,16 @@ export default function App() {
         >
           {item.completed ? 'Completed' : 'Ongoing'}
         </Text>
+
+        {/* Display task creation and completion timestamps */}
+        <Text style={{ fontSize: 10, color: '#757575' }}>
+          {`Created: ${new Date(item.createdAt).toLocaleString()}`}
+        </Text>
+        {item.completedAt && (
+          <Text style={{ fontSize: 10, color: '#757575' }}>
+            {`Completed: ${new Date(item.completedAt).toLocaleString()}`}
+          </Text>
+        )}
       </View>
 
       <TouchableOpacity onPress={() => handleEditTask(index)}>
@@ -154,12 +182,6 @@ export default function App() {
       </TouchableOpacity>
     </View>
   );
-
-  const filteredTasks = tasks.filter((t) => {
-    if (filter === 'All') return true;
-    if (filter === 'Ongoing') return !t.completed;
-    if (filter === 'Completed') return t.completed;
-  });
 
   return (
     <View style={styles.container}>
@@ -177,7 +199,6 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Priority shown only when typing */}
       {task.trim() !== '' && (
         <View style={styles.priorityContainer}>
           {['Low', 'Medium', 'High'].map((level) => (
@@ -202,29 +223,6 @@ export default function App() {
         </View>
       )}
 
-      {/* Filtering is always visible */}
-      <View style={styles.filterContainer}>
-        {['All', 'Ongoing', 'Completed'].map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.filterButton,
-              filter === type && styles.filterSelected,
-            ]}
-            onPress={() => setFilter(type)}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                filter === type && { color: 'white' },
-              ]}
-            >
-              {type}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <FlatList
         data={filteredTasks}
         renderItem={renderTask}
@@ -235,7 +233,41 @@ export default function App() {
             <Text style={{ color: '#999', marginTop: 10 }}>No tasks found</Text>
           </View>
         }
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
+
+      {/* Balanced Bottom Filter Tabs */}
+      <View style={styles.bottomTabContainer}>
+        {[
+          { label: 'All', icon: 'list' },
+          { label: 'Ongoing', icon: 'clock' },
+          { label: 'Completed', icon: 'check-circle' },
+        ].map(({ label, icon }) => (
+          <TouchableOpacity
+            key={label}
+            style={[
+              styles.tabButton,
+              filter === label && styles.tabButtonActive,
+            ]}
+            onPress={() => setFilter(label)}
+          >
+            <Feather
+              name={icon}
+              size={18}
+              color={filter === label ? 'white' : '#555'}
+              style={styles.tabIcon}
+            />
+            <Text
+              style={[
+                styles.tabButtonText,
+                filter === label && { color: 'white' },
+              ]}
+            >
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
@@ -294,25 +326,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#424242',
   },
-  filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 15,
-  },
-  filterButton: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    marginHorizontal: 5,
-  },
-  filterSelected: {
-    backgroundColor: '#2196F3',
-  },
-  filterText: {
-    fontWeight: 'bold',
-    color: '#424242',
-  },
   taskContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -328,6 +341,41 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     marginTop: 50,
+  },
+
+  bottomTabContainer: {
+    position: 'flex',
+    top: -25,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    borderRadius: 15,
+    paddingVertical: 16,
+    paddingHorizontal: 15,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+  },
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f1f1',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  tabButtonActive: {
+    backgroundColor: '#2196F3',
+  },
+  tabButtonText: {
+    color: '#555',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  tabIcon: {
+    marginRight: 6,
   },
 });
 
