@@ -1,0 +1,9 @@
+This To Do List app is Created Using 
+React Native and by following DearProgramers
+Simple Todo list app in react native tutorial 
+
+This is the link to the tutorial: 
+[ https://youtu.be/imysBiRXqGk?si=zDc9DkWE6GvVGmU7 ]
+
+Expo Link :
+https://expo.dev/accounts/yakumo.mirai2415/projects/ToDoList
