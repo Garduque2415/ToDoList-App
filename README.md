@@ -6,4 +6,7 @@ This is the link to the tutorial:
 [ https://youtu.be/imysBiRXqGk?si=zDc9DkWE6GvVGmU7 ]
 
 Expo Link :
-https://expo.dev/accounts/yakumo.mirai2415/projects/ToDoList
+[ https://expo.dev/accounts/yakumo.mirai2415/projects/ToDoList ]
+
+Apk already submitted to Drive:
+[ https://drive.google.com/drive/folders/18zzAtDf3qzdiSsfiYzQuRRDtkFYDAIYP?usp=drive_link ]
